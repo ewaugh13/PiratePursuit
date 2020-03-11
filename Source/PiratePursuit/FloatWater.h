@@ -34,8 +34,6 @@ public:
 
 	// sinks the object
 	void SinkObject(float SinkRate);
-	// over time object floats back up
-	void FloatBackUp(float TimeToRise);
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Water")

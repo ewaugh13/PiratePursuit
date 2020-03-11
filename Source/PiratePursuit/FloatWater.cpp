@@ -72,8 +72,3 @@ void UFloatWater::SinkObject(float SinkRate)
 	FVector barrelLoc = this->GetOwner()->GetActorLocation();
 	this->GetOwner()->SetActorLocation(FVector(barrelLoc.X, barrelLoc.Y, barrelLoc.Z + SinkRate));
 }
-
-void UFloatWater::FloatBackUp(float TimeToRise)
-{
-
-}

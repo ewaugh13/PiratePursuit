@@ -38,7 +38,7 @@ void AWater::BeginOverlap(UPrimitiveComponent * OverlappedComponent, AActor * Ot
 	if (OtherActor != nullptr)
 	{
 		UTreasureHolderComponent * treasureHolder = OtherActor->FindComponentByClass<UTreasureHolderComponent>();
-		if (treasureHolder != nullptr && this->IsActive && treasureHolder->hasTreasure())
+		if (treasureHolder != nullptr && this->IsActive && treasureHolder->GetHeldTreasure() != nullptr)
 		{
 			treasureHolder->LoseTreasure();
 			TArray<AActor *> treasureActors;

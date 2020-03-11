@@ -1,48 +1,67 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "TreasureHolderComponent.generated.h"
 
+class ATreasure;
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+class UCharacterMovementComponent;
+
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class PIRATEPURSUIT_API UTreasureHolderComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:	
+public:
+
 	// Sets default values for this component's properties
 	UTreasureHolderComponent();
 
-	UFUNCTION(BlueprintCallable, Category = "TreasureHolderComponent")
-	void GetTreasure(AActor* treasure);
-
-	UFUNCTION(BlueprintCallable, Category = "TreasureHolderComponent")
-	void LoseTreasure();
-
-	UFUNCTION(BlueprintPure, Category = "TreasureHolderComponent")
-	bool hasTreasure() const { return (bool)treasure; }
-
-	UFUNCTION(BlueprintPure, Category = "TreasureHolderComponent")
-	bool canGrabTreasure() const { return currentCooldown >= cooldownTime; }
-protected:
-	// Called when the game starts
-	virtual void BeginPlay() override;
-
-	float currentCooldown = 0.f;
-
-	float originalMaxSpeed = 300.f;
-public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	AActor* treasure;
+	UFUNCTION(BlueprintCallable, Category = "TreasureHolderComponent")
+		void PickupTreasure(ATreasure * i_NewTreasure);
+
+	UFUNCTION(BlueprintCallable, Category = "TreasureHolderComponent")
+		void LoseTreasure();
+
+	UFUNCTION(BlueprintPure, Category = "TreasureHolderComponent")
+		ATreasure * GetHeldTreasure() const { return _HeldTreasure; }
+
+	UFUNCTION(BlueprintPure, Category = "TreasureHolderComponent")
+		bool InCooldownState() const { return _CurrentCooldown > 0; }
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TreasureHolderComponent")
-	float cooldownTime = 5.f;
+		// Amount of time for cooldown between picking up treasure
+		float m_CooldownTime = 5.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TreasureHolderComponent")
-	float speedMultiplier = .85f;
+		// Multiplier to affect characters speed when picking up treasure
+		float m_SpeedMultiplier = 0.85f;
+
+protected:
+
+	// Called when the game starts
+	virtual void BeginPlay() override;
+
+private:
+
+	UPROPERTY(VisibleAnywhere, Category = "TreasureHolderComponent")
+		// Reference to treasure being held
+		ATreasure * _HeldTreasure;
+
+	UPROPERTY(VisibleAnywhere, Category = "TreasureHolderComponent")
+		// Cooldown to pick up treasure
+		float _CurrentCooldown = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, Category = "TreasureHolderComponent")
+		// Cooldown to pick up treasure
+		float _OriginalMaxSpeed = 300.0f;
+
+	UPROPERTY(VisibleAnywhere, Category = "TreasureHolderComponent")
+		// Owning actors movement component
+		UCharacterMovementComponent * _OwnerMovement;
+
 };
