@@ -90,7 +90,7 @@ void APiratePursuitCharacter::LookUpAtRate(float Rate)
 
 void APiratePursuitCharacter::MoveForward(float Value)
 {
-	if ((Controller != NULL) && (Value != 0.0f) && (isOnLadder == false))
+	if (Controller != nullptr && Value != 0.0f && !_IsOnLadder == false)
 	{
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -100,7 +100,7 @@ void APiratePursuitCharacter::MoveForward(float Value)
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 		AddMovementInput(Direction, Value);
 	}
-	else if ((Controller != NULL) && (Value != 0.0f) && (isOnLadder == true))
+	else if (Controller != nullptr && Value != 0.0f && _IsOnLadder)
 	{
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -115,7 +115,7 @@ void APiratePursuitCharacter::MoveForward(float Value)
 
 void APiratePursuitCharacter::MoveRight(float Value)
 {
-	if ((Controller != NULL) && (Value != 0.0f))
+	if (Controller != nullptr && Value != 0.0f)
 	{
 		// find out which way is right
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -132,25 +132,28 @@ void APiratePursuitCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	this->GetCapsuleComponent()->OnComponentBeginOverlap.AddUniqueDynamic(this, &APiratePursuitCharacter::BeginOverlap);
-	this->OnActorHit.AddUniqueDynamic(this, &APiratePursuitCharacter::OnHit);
-	this->SetRespawnPlatform();
+	// add hit and overlap bindings
+	GetCapsuleComponent()->OnComponentBeginOverlap.AddUniqueDynamic(this, &APiratePursuitCharacter::BeginOverlap);
+	OnActorHit.AddUniqueDynamic(this, &APiratePursuitCharacter::OnHit);
+	FindNextRespawnPlatform();
 
 	// initalize water instance reference
-	if (WaterInstance == nullptr)
+	if (_WaterInstance == nullptr)
 	{
 		TArray<AActor*> water;
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AWater::StaticClass(), water);
-		WaterInstance = Cast<AWater>(water[0]);
+		_WaterInstance = Cast<AWater>(water[0]);
 	}
 
+	// get all actors with respawn tag and sort them based on their height (lowest first)
 	TArray<AActor*> respawnPlatformsArray;
-	UGameplayStatics::GetAllActorsWithTag(this->GetWorld(), this->RespawnTag, respawnPlatformsArray);
+	UGameplayStatics::GetAllActorsWithTag(GetWorld(), m_RespawnTag, respawnPlatformsArray);
 	respawnPlatformsArray.Sort(APiratePursuitCharacter::LowestPosition);
 
+	// add all respawn platforms to stack, lower ones will be higher on the stack
 	for (AActor * platform : respawnPlatformsArray)
 	{
-		this->respawnPlatforms.push(platform);
+		_RespawnPlatforms.push(platform);
 	}
 }
 
@@ -158,13 +161,12 @@ void APiratePursuitCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	this->SetRespawnPlatform();
+	FindNextRespawnPlatform();
 }
 
 void APiratePursuitCharacter::Walk()
 {
 	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-	//StopJumping();
 }
 
 void APiratePursuitCharacter::Climb()
@@ -174,60 +176,66 @@ void APiratePursuitCharacter::Climb()
 
 void APiratePursuitCharacter::OnHit(AActor * SelfActor, AActor * OtherActor, FVector NormalImpulse, const FHitResult & Hit)
 {
+	// when we hit an actor update current respawn platform
 	if (OtherActor != nullptr && OtherActor != this)
 	{
-		this->SetRespawnPlatform();
+		FindNextRespawnPlatform();
 	}
 }
 
 void APiratePursuitCharacter::BeginOverlap(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp,
 	int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
-	if (OtherActor == this->WaterInstance)
+	// if we are overlap with the water
+	if (OtherActor == _WaterInstance)
 	{
-		FVector newPostion = this->GetActorLocation();
-		UGameplayStatics::PlaySoundAtLocation(this->GetWorld(), this->SplooshSound, newPostion);
-		if (this->RespawnPlatform != nullptr &&
-			this->RespawnPlatform->GetActorLocation().Z > this->WaterInstance->GetActorLocation().Z)
+		FVector newPostion = GetActorLocation();
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), m_SplooshSound, newPostion);
+		
+		// if the current respawn platform is above the water level
+		if (_RespawnPlatform != nullptr &&
+			_RespawnPlatform->GetActorLocation().Z > _WaterInstance->GetActorLocation().Z)
 		{
-			newPostion = this->RespawnPlatform->GetActorLocation() + (GetActorUpVector() * this->PlayerHeight);
+			newPostion = _RespawnPlatform->GetActorLocation() + (GetActorUpVector() * m_PlayerHeight);
 		}
+		// find a new respawn platform
 		else
 		{
 			AActor * newRespawnPlat = nullptr;
-			while (newRespawnPlat == nullptr && !this->respawnPlatforms.empty())
+			// iterate until we find next available respawn platform
+			while (newRespawnPlat == nullptr && !_RespawnPlatforms.empty())
 			{
-				AActor * possiblePlat = this->respawnPlatforms.top();
+				AActor * possiblePlat = _RespawnPlatforms.top();
 				// if its below the water and not high enough above remove it from stack
-				if (possiblePlat->GetActorLocation().Z < this->WaterInstance->GetActorLocation().Z
-					|| abs(possiblePlat->GetActorLocation().Z - this->WaterInstance->GetActorLocation().Z) < this->PlayerHeight * 0.5f)
+				if (possiblePlat->GetActorLocation().Z < _WaterInstance->GetActorLocation().Z
+					|| abs(possiblePlat->GetActorLocation().Z - _WaterInstance->GetActorLocation().Z) < m_PlayerHeight * 0.5f)
 				{
-					this->respawnPlatforms.pop();
+					_RespawnPlatforms.pop();
 				}
 				else
 				{
 					newRespawnPlat = possiblePlat;
-					newPostion = newRespawnPlat->GetActorLocation() + (GetActorUpVector() * this->PlayerHeight);
+					newPostion = newRespawnPlat->GetActorLocation() + (GetActorUpVector() * m_PlayerHeight);
 				}
 			}
 		}
-		this->SetActorLocation(newPostion);
+		SetActorLocation(newPostion);
 	}
 }
 
-void APiratePursuitCharacter::SetRespawnPlatform()
+void APiratePursuitCharacter::FindNextRespawnPlatform()
 {
-	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "calling set respawn platform");
 	FHitResult hitResult;
-	UWorld* theWorld = this->GetWorld();
-	FVector startVector = FVector(this->GetActorLocation().X, this->GetActorLocation().Y, this->GetActorLocation().Z - this->PlayerHeight / 2);
-	FVector endVector = startVector + (-1 * GetActorUpVector()) * this->PlayerHeight / 2;
+	// set up vectors for line trace
+	FVector startVector = FVector(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z - m_PlayerHeight / 2);
+	FVector endVector = startVector + (-1 * GetActorUpVector()) * m_PlayerHeight / 2;
 
 	FCollisionQueryParams TraceParams(FName(TEXT("Trace")));
 
-	theWorld->LineTraceSingleByObjectType(hitResult, startVector, endVector, ECC_WorldStatic, TraceParams);
-	if (hitResult.GetActor() != nullptr && hitResult.GetActor()->ActorHasTag(this->RespawnTag)) //&& (this->RespawnPlatform == nullptr || hitResult.GetActor()->GetFName() == Actor->GetFName()))
+	GetWorld()->LineTraceSingleByObjectType(hitResult, startVector, endVector, ECC_WorldStatic, TraceParams);
+	// if we hit another actor that has the respawn tag
+	if (hitResult.GetActor() != nullptr && hitResult.GetActor()->ActorHasTag(m_RespawnTag))
 	{
-		this->RespawnPlatform = hitResult.GetActor();
+		_RespawnPlatform = hitResult.GetActor();
 	}
 }

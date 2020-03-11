@@ -30,7 +30,14 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 		float BaseLookUpRate;
 
-	bool isOnLadder;
+	UPROPERTY(EditAnyWhere, Category = "PirateCharacter")
+		uint32 m_PlayerHeight = 150;
+
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "PirateCharacter")
+		FName m_RespawnTag = FName(TEXT("Respawn Platform"));
+
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "PirateCharacter")
+		USoundBase * m_SplooshSound;
 
 protected:
 
@@ -80,17 +87,20 @@ public:
 			int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult);
 
 private:
-	UPROPERTY(EditAnyWhere)
-		uint32 PlayerHeight = 150;
-	UPROPERTY(EditAnyWhere)
-		FName RespawnTag = FName(TEXT("Respawn Platform"));
-	UPROPERTY(EditAnyWhere)
-		USoundBase * SplooshSound = nullptr;
-	void SetRespawnPlatform();
-	AActor * RespawnPlatform;
-	AWater * WaterInstance;
-	std::stack<AActor *> respawnPlatforms;
 
+	void FindNextRespawnPlatform();
+
+	UPROPERTY(VisibleAnywhere, Category = "PirateCharacter")
+		bool _IsOnLadder = false;
+
+	UPROPERTY(VisibleAnywhere, Category = "PirateCharacter")
+		AActor * _RespawnPlatform;
+	UPROPERTY(VisibleAnywhere, Category = "PirateCharacter")
+		AWater * _WaterInstance;
+
+	std::stack<AActor *> _RespawnPlatforms;
+
+	// Predicate used to sort array of respawn platforms with lower ones (Z axis) first
 	inline static bool LowestPosition(const AActor& i_Actor1, const AActor& i_Actor2)
 	{
 		return (i_Actor1.GetActorLocation().Z > i_Actor2.GetActorLocation().Z);
