@@ -1,6 +1,6 @@
-// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
-
 #include "PiratePursuitCharacter.h"
+
+#include "Water.h"
 
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -100,7 +100,7 @@ void APiratePursuitCharacter::MoveForward(float Value)
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 		AddMovementInput(Direction, Value);
 	}
-	else if ((Controller != NULL) && (Value != 0.0f) && (isOnLadder == true)) 
+	else if ((Controller != NULL) && (Value != 0.0f) && (isOnLadder == true))
 	{
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -135,12 +135,16 @@ void APiratePursuitCharacter::BeginPlay()
 	this->GetCapsuleComponent()->OnComponentBeginOverlap.AddUniqueDynamic(this, &APiratePursuitCharacter::BeginOverlap);
 	this->OnActorHit.AddUniqueDynamic(this, &APiratePursuitCharacter::OnHit);
 	this->SetRespawnPlatform();
-	if (this->WaterInstance == nullptr)
+
+	// initalize water instance reference
+	if (WaterInstance == nullptr)
 	{
-		this->WaterInstance = (Cast<AGameModeBase>(this->GetWorld()->GetAuthGameMode())
-			->FindPlayerStart(this->GetController()))->FindComponentByClass<UWaterInstanceData>()->GetWaterInstance();
+		TArray<AActor*> water;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AWater::StaticClass(), water);
+		WaterInstance = Cast<AWater>(water[0]);
 	}
-	TArray<AActor *> respawnPlatformsArray;
+
+	TArray<AActor*> respawnPlatformsArray;
 	UGameplayStatics::GetAllActorsWithTag(this->GetWorld(), this->RespawnTag, respawnPlatformsArray);
 	respawnPlatformsArray.Sort(APiratePursuitCharacter::LowestPosition);
 
@@ -157,13 +161,13 @@ void APiratePursuitCharacter::Tick(float DeltaTime)
 	this->SetRespawnPlatform();
 }
 
-void APiratePursuitCharacter::Walk() 
+void APiratePursuitCharacter::Walk()
 {
 	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 	//StopJumping();
 }
 
-void APiratePursuitCharacter::Climb() 
+void APiratePursuitCharacter::Climb()
 {
 	GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 }
@@ -183,7 +187,7 @@ void APiratePursuitCharacter::BeginOverlap(UPrimitiveComponent * OverlappedCompo
 	{
 		FVector newPostion = this->GetActorLocation();
 		UGameplayStatics::PlaySoundAtLocation(this->GetWorld(), this->SplooshSound, newPostion);
-		if (this->RespawnPlatform != nullptr && 
+		if (this->RespawnPlatform != nullptr &&
 			this->RespawnPlatform->GetActorLocation().Z > this->WaterInstance->GetActorLocation().Z)
 		{
 			newPostion = this->RespawnPlatform->GetActorLocation() + (GetActorUpVector() * this->PlayerHeight);
@@ -195,7 +199,7 @@ void APiratePursuitCharacter::BeginOverlap(UPrimitiveComponent * OverlappedCompo
 			{
 				AActor * possiblePlat = this->respawnPlatforms.top();
 				// if its below the water and not high enough above remove it from stack
-				if (possiblePlat->GetActorLocation().Z < this->WaterInstance->GetActorLocation().Z 
+				if (possiblePlat->GetActorLocation().Z < this->WaterInstance->GetActorLocation().Z
 					|| abs(possiblePlat->GetActorLocation().Z - this->WaterInstance->GetActorLocation().Z) < this->PlayerHeight * 0.5f)
 				{
 					this->respawnPlatforms.pop();

@@ -17,7 +17,7 @@ public:
 	UTreasureRespawnComponent();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TreasureRespawnComponent")
-		FVector RespawnPoint = FVector::ZeroVector;
+		FVector m_RespawnPoint = FVector::ZeroVector;
 
 protected:
 	// Called when the game starts

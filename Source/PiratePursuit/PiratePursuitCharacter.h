@@ -1,25 +1,19 @@
-// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
-
 #pragma once
 
 #include "CoreMinimal.h"
-
-#include "WaterInstanceData.h"
-
 #include "GameFramework/Character.h"
-//#include "GameFramework/GameModeBase.h"
-
 #include <stack> 
-
 #include "PiratePursuitCharacter.generated.h"
+
+class AWater;
 
 UCLASS(config = Game)
 class APiratePursuitCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
-		/** Camera boom positioning the camera behind the character */
-		UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	/** Camera boom positioning the camera behind the character */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class USpringArmComponent* CameraBoom;
 
 	/** Follow camera */
@@ -94,7 +88,7 @@ private:
 		USoundBase * SplooshSound = nullptr;
 	void SetRespawnPlatform();
 	AActor * RespawnPlatform;
-	AActor * WaterInstance;
+	AWater * WaterInstance;
 	std::stack<AActor *> respawnPlatforms;
 
 	inline static bool LowestPosition(const AActor& i_Actor1, const AActor& i_Actor2)

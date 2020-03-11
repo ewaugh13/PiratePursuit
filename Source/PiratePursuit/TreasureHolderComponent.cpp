@@ -56,6 +56,7 @@ void UTreasureHolderComponent::PickupTreasure(ATreasure * NewTreasure)
 			}
 		}
 
+		// slow down the player
 		if (_OwnerMovement != nullptr)
 		{
 			_OwnerMovement->MaxWalkSpeed = _OriginalMaxSpeed * m_SpeedMultiplier;
@@ -66,6 +67,7 @@ void UTreasureHolderComponent::PickupTreasure(ATreasure * NewTreasure)
 
 void UTreasureHolderComponent::LoseTreasure()
 {
+	// remove the treasure, set cooldown timer and reset the player movement
 	if (_HeldTreasure != nullptr)
 	{
 		_CurrentCooldown = m_CooldownTime;

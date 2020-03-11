@@ -33,7 +33,7 @@ void UFloatWater::TickComponent(float DeltaTime, ELevelTick TickType, FActorComp
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (this->GetOwner() != nullptr && this->WaterInstance != nullptr && this->WaterInstance->IsActive)
+	if (this->GetOwner() != nullptr && this->WaterInstance != nullptr && this->WaterInstance->m_IsActive)
 	{
 		// sink
 		if (this->ActorOnTop)
@@ -49,7 +49,7 @@ void UFloatWater::TickComponent(float DeltaTime, ELevelTick TickType, FActorComp
 			if (abs(waterLoc.Z + this->StartDistanceBetweenWater - barrelLoc.Z) > 1.0f)
 			{
 				this->GetOwner()->SetActorLocation(FVector(barrelLoc.X, barrelLoc.Y,
-					barrelLoc.Z + ((this->RiseSinkRate / 4 + this->WaterInstance->RisingSpeed) * DeltaTime)));
+					barrelLoc.Z + ((this->RiseSinkRate / 4 + this->WaterInstance->m_RisingSpeed) * DeltaTime)));
 			}
 			else
 			{
@@ -64,7 +64,6 @@ void UFloatWater::TickComponent(float DeltaTime, ELevelTick TickType, FActorComp
 			this->GetOwner()->SetActorLocation(FVector(barrelLoc.X, barrelLoc.Y, waterLoc.Z + this->StartDistanceBetweenWater));
 		}
 	}
-	// ...
 }
 
 void UFloatWater::SinkObject(float SinkRate)

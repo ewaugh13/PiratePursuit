@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Water.h"
 #include "PiratePursuit.h"
 #include "Treasure.h"
@@ -15,7 +12,6 @@ AWater::AWater()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
 }
 
 // Called when the game starts or when spawned
@@ -30,19 +26,23 @@ void AWater::BeginPlay()
 void AWater::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
-void AWater::BeginOverlap(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+void AWater::BeginOverlap(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp,
+	int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 	if (OtherActor != nullptr)
 	{
 		UTreasureHolderComponent * treasureHolder = OtherActor->FindComponentByClass<UTreasureHolderComponent>();
-		if (treasureHolder != nullptr && this->IsActive && treasureHolder->GetHeldTreasure() != nullptr)
+		// if other actor is holding treasure and water is active
+		if (treasureHolder != nullptr && m_IsActive && treasureHolder->GetHeldTreasure() != nullptr)
 		{
 			treasureHolder->LoseTreasure();
+
 			TArray<AActor *> treasureActors;
 			UGameplayStatics::GetAllActorsOfClass(this->GetWorld(), ATreasure::StaticClass(), treasureActors);
+
+			// respawn all treasure
 			for (AActor * treasureActor : treasureActors)
 			{
 				ATreasure * treasure = Cast<ATreasure>(treasureActor);
