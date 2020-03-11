@@ -8,8 +8,7 @@ AOctopus::AOctopus()
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	this->GetGravityDirection();
-	this->OctopusTargetPointsQueue = nullptr;
+	_OctopusTargetPointsQueue = nullptr;
 }
 
 // Called when the game starts or when spawned
@@ -17,7 +16,7 @@ void AOctopus::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (this->OctopusTargetPointsQueue == nullptr)
+	if (_OctopusTargetPointsQueue == nullptr)
 	{
 		this->InitalizeTargetPointsQueue();
 	}
@@ -31,13 +30,13 @@ void AOctopus::Tick(float DeltaTime)
 
 void AOctopus::InitalizeTargetPointsQueue()
 {
-	int32 numTargets = this->OctopusTargetPointsSet.Num();
-	this->OctopusTargetPointsQueue = new TCircularQueue<AOctopusTargetPoint *>(numTargets + 1);
-	for (AOctopusTargetPoint * target : this->OctopusTargetPointsSet)
+	int32 numTargets = _OctopusTargetPointsSet.Num();
+	_OctopusTargetPointsQueue = new TCircularQueue<AOctopusTargetPoint *>(numTargets + 1);
+	for (AOctopusTargetPoint * target : _OctopusTargetPointsSet)
 	{
-		this->OctopusTargetPointsQueue->Enqueue(target);
+		_OctopusTargetPointsQueue->Enqueue(target);
 	}
-	this->OctopusTargetPointsSet.Empty();
+	_OctopusTargetPointsSet.Empty();
 }
 
 // Called to bind functionality to input

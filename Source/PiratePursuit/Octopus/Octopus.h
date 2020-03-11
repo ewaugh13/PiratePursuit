@@ -1,10 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "CircularQueue.h"
-//#include "GameFramework/Pawn.h"
 #include "GameFramework/Character.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "OctopusTargetPoint.h"
@@ -34,18 +31,21 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 #pragma region Getters and Setters
-	UBehaviorTree * GetBehaviorTree() { return this->pBehaviorTree; }
+	UBehaviorTree * GetBehaviorTree() { return _BehaviorTree; }
 
-	TCircularQueue<AOctopusTargetPoint *> * GetTargetPoints() { return this->OctopusTargetPointsQueue; }
+	TCircularQueue<AOctopusTargetPoint *> * GetTargetPoints() { return _OctopusTargetPointsQueue; }
 #pragma endregion
 
 
 private:
-	// behavior tree for the octopus
+
 	UPROPERTY(EditAnywhere, Category = "BehaviorTree")
-		UBehaviorTree * pBehaviorTree;
-	// add the elements to the set in the order we will visit them  
+		// behavior tree for the octopus
+		UBehaviorTree * _BehaviorTree;
+
 	UPROPERTY(EditAnyWhere, Category = "Custom AI")
-		TSet<AOctopusTargetPoint *> OctopusTargetPointsSet;
-	TCircularQueue<AOctopusTargetPoint *> * OctopusTargetPointsQueue;
+		// add the elements to the set in the order we will visit them  
+		TSet<AOctopusTargetPoint *> _OctopusTargetPointsSet;
+
+	TCircularQueue<AOctopusTargetPoint *> * _OctopusTargetPointsQueue;
 };

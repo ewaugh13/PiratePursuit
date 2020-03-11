@@ -1,13 +1,17 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "OctopusAIController.h"
+
+#include "Octopus.h"
+#include "OctopusTargetPoint.h"
+
+#include "BehaviorTree/BehaviorTree.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "BehaviorTree/BehaviorTreeComponent.h"
 
 AOctopusAIController::AOctopusAIController()
 {
 	//Initialize the behavior tree and blackboard components
-	this->pBehaviorComp = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("BehaviorComp"));
-	this->pBlackboardComp = CreateDefaultSubobject<UBlackboardComponent>(TEXT("BlackboardComp"));
+	_BehaviorComp = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("BehaviorComp"));
+	_BlackboardComp = CreateDefaultSubobject<UBlackboardComponent>(TEXT("BlackboardComp"));
 }
 
 void AOctopusAIController::OnPossess(APawn * InPawn)
@@ -22,8 +26,8 @@ void AOctopusAIController::OnPossess(APawn * InPawn)
 		// the AAICharacter class does not exclude any member "BehaviorTree"
 		if (Octopus->GetBehaviorTree()->BlackboardAsset)
 		{
-			this->pBlackboardComp->InitializeBlackboard(*(Octopus->GetBehaviorTree()->BlackboardAsset));
-			this->pBehaviorComp->StartTree(*Octopus->GetBehaviorTree());
+			_BlackboardComp->InitializeBlackboard(*(Octopus->GetBehaviorTree()->BlackboardAsset));
+			_BehaviorComp->StartTree(*Octopus->GetBehaviorTree());
 		}
 
 		if (Octopus->GetTargetPoints() == nullptr)
@@ -33,24 +37,16 @@ void AOctopusAIController::OnPossess(APawn * InPawn)
 	}
 }
 
-void AOctopusAIController::SetSeenTarget(APawn * InPawn)
-{
-	////Registers the Pawn that the AI has seen in the blackboard
-	//if (this->pBlackboardComp)
-	//{
-	//	this->pBlackboardComp->SetValueAsObject(this->LocationBlackboardKey, InPawn);
-	//}
-}
-
 void AOctopusAIController::EvaulateNextTargetPoint()
 {
-	AOctopus * Octopus = Cast<AOctopus>(this->GetPawn());
-	if (this->pBlackboardComp != nullptr && Octopus->GetTargetPoints()->Count() > 0)
+	AOctopus * Octopus = Cast<AOctopus>(GetPawn());
+	if (_BlackboardComp != nullptr && Octopus->GetTargetPoints()->Count() > 0)
 	{
 		AOctopusTargetPoint * targetPoint;
 		// remove next target point
 		Octopus->GetTargetPoints()->Dequeue(targetPoint);
-		this->pBlackboardComp->SetValueAsObject(this->LocationBlackboardKey, targetPoint);
+
+		_BlackboardComp->SetValueAsObject(_LocationBlackboardKey, targetPoint);
 		// add target point to end of queue to continue circular link
 		Octopus->GetTargetPoints()->Enqueue(targetPoint);
 	}

@@ -1,9 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "OctopusSelectTargetTask.h"
-#include "OctopusTargetPoint.h"
+
 #include "OctopusAIController.h"
+#include "OctopusTargetPoint.h"
+
 #include "Engine.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
