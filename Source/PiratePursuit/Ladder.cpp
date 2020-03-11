@@ -25,8 +25,6 @@ ALadder::ALadder()
 void ALadder::BeginPlay()
 {
 	Super::BeginPlay();
-
-	PiratePursuitCharacter = Cast<APiratePursuitCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 1));
 }
 
 // Called every frame

@@ -1,7 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "FloatWater.h"
+
+#include "Water.h"
+
 #include "GameFramework/Actor.h"
 
 // Sets default values for this component's properties
@@ -10,64 +10,54 @@ UFloatWater::UFloatWater()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
 }
-
 
 // Called when the game starts
 void UFloatWater::BeginPlay()
 {
 	Super::BeginPlay();
-	if (this->GetOwner() != nullptr && this->WaterInstance != nullptr)
+
+	if (GetOwner() != nullptr && m_WaterInstance != nullptr)
 	{
-		this->StartDistanceBetweenWater = this->GetOwner()->GetActorLocation().Z - this->WaterInstance->GetActorLocation().Z;
+		_StartDistanceBetweenWater = GetOwner()->GetActorLocation().Z - m_WaterInstance->GetActorLocation().Z;
 	}
-	// ...
-
 }
-
 
 // Called every frame
 void UFloatWater::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (this->GetOwner() != nullptr && this->WaterInstance != nullptr && this->WaterInstance->m_IsActive)
+	if (GetOwner() != nullptr && m_WaterInstance != nullptr && m_WaterInstance->m_IsActive)
 	{
-		// sink
-		if (this->ActorOnTop)
+		// sink state
+		if (_ActorOnTop)
 		{
-			FVector barrelLoc = this->GetOwner()->GetActorLocation();
-			this->GetOwner()->SetActorLocation(FVector(barrelLoc.X, barrelLoc.Y, barrelLoc.Z - this->RiseSinkRate * DeltaTime));
+			FVector barrelLoc = GetOwner()->GetActorLocation();
+			GetOwner()->SetActorLocation(FVector(barrelLoc.X, barrelLoc.Y, barrelLoc.Z - m_SinkRate * DeltaTime));
 		}
-		// rise back up
-		else if (this->QuickRising)
+		// rise back up state
+		else if (_QuickRising)
 		{
-			FVector waterLoc = this->WaterInstance->GetActorLocation();
-			FVector barrelLoc = this->GetOwner()->GetActorLocation();
-			if (abs(waterLoc.Z + this->StartDistanceBetweenWater - barrelLoc.Z) > 1.0f)
+			FVector waterLoc = m_WaterInstance->GetActorLocation();
+			FVector barrelLoc = GetOwner()->GetActorLocation();
+			if (abs(waterLoc.Z + _StartDistanceBetweenWater - barrelLoc.Z) > 1.0f)
 			{
-				this->GetOwner()->SetActorLocation(FVector(barrelLoc.X, barrelLoc.Y,
-					barrelLoc.Z + ((this->RiseSinkRate / 4 + this->WaterInstance->m_RisingSpeed) * DeltaTime)));
+				// rise up at a fraction of the sink rate
+				GetOwner()->SetActorLocation(FVector(barrelLoc.X, barrelLoc.Y,
+					barrelLoc.Z + ((m_SinkRate * m_RiseRate + m_WaterInstance->m_RisingSpeed) * DeltaTime)));
 			}
 			else
 			{
-				this->QuickRising = false;
+				_QuickRising = false;
 			}
 		}
-		// rising with water
+		// rising with water state
 		else
 		{
-			FVector waterLoc = this->WaterInstance->GetActorLocation();
-			FVector barrelLoc = this->GetOwner()->GetActorLocation();
-			this->GetOwner()->SetActorLocation(FVector(barrelLoc.X, barrelLoc.Y, waterLoc.Z + this->StartDistanceBetweenWater));
+			FVector waterLoc = m_WaterInstance->GetActorLocation();
+			FVector barrelLoc = GetOwner()->GetActorLocation();
+			GetOwner()->SetActorLocation(FVector(barrelLoc.X, barrelLoc.Y, waterLoc.Z + _StartDistanceBetweenWater));
 		}
 	}
-}
-
-void UFloatWater::SinkObject(float SinkRate)
-{
-	FVector barrelLoc = this->GetOwner()->GetActorLocation();
-	this->GetOwner()->SetActorLocation(FVector(barrelLoc.X, barrelLoc.Y, barrelLoc.Z + SinkRate));
 }

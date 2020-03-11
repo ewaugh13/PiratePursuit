@@ -1,22 +1,19 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Barrel.h"
+
+#include "FloatWater.h"
 #include "PiratePursuitCharacter.h"
 
-#include "Components/StaticMeshComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/StaticMeshComponent.h"
 
 void ABarrel::BeginPlay()
 {
 	Super::BeginPlay();
 
-	this->FloatComponent = this->FindComponentByClass<UFloatWater>();
+	_FloatComponent = FindComponentByClass<UFloatWater>();
 
-	UStaticMeshComponent * staticMeshComp = this->GetStaticMeshComponent();
 	TArray<USceneComponent *> childrenComponents;
-	staticMeshComp->GetChildrenComponents(true, childrenComponents);
-	uint32 numChildren = staticMeshComp->GetNumChildrenComponents();
+	GetStaticMeshComponent()->GetChildrenComponents(true, childrenComponents);
 
 	UCapsuleComponent * capsule = nullptr;
 	for (USceneComponent * component : childrenComponents)
@@ -29,8 +26,6 @@ void ABarrel::BeginPlay()
 			break;
 		}
 	}
-
-	this->OnActorHit.AddUniqueDynamic(this, &ABarrel::OnHit);
 }
 
 void ABarrel::Tick(float DeltaTime)
@@ -38,11 +33,12 @@ void ABarrel::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void ABarrel::BeginOverlap(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+void ABarrel::BeginOverlap(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp,
+	int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 	if (Cast<APiratePursuitCharacter>(OtherActor))
 	{
-		this->FloatComponent->SetActorOnTop(true);
+		_FloatComponent->SetActorOnTop(true);
 	}
 }
 
@@ -50,15 +46,7 @@ void ABarrel::OnOverlapEnd(UPrimitiveComponent * OverlappedComp, AActor * OtherA
 {
 	if (Cast<APiratePursuitCharacter>(OtherActor))
 	{
-		this->FloatComponent->SetActorOnTop(false);
-		this->FloatComponent->SetQuickRise(true);
-	}
-}
-
-void ABarrel::OnHit(AActor * SelfActor, AActor * OtherActor, FVector NormalImpulse, const FHitResult & Hit)
-{
-	if (OtherActor != nullptr && OtherActor != this)
-	{
-		
+		_FloatComponent->SetActorOnTop(false);
+		_FloatComponent->SetQuickRise(true);
 	}
 }
