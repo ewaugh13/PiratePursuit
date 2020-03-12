@@ -1,8 +1,8 @@
 #include "Water.h"
 #include "PiratePursuit.h"
-#include "Treasure.h"
-#include "TreasureHolderComponent.h"
-#include "TreasureRespawnComponent.h"
+#include "Treasure/Treasure.h"
+#include "Treasure/TreasureHolderComponent.h"
+#include "Treasure/TreasureRespawnComponent.h"
 
 #include "Components/StaticMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
