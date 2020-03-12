@@ -26,6 +26,13 @@ void AWater::BeginPlay()
 void AWater::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (m_IsActive)
+	{
+		FVector newLocation = GetActorLocation();
+		newLocation.Z += DeltaTime * m_RisingSpeed;
+		SetActorLocation(newLocation, true, nullptr, ETeleportType::None);
+	}
 }
 
 void AWater::BeginOverlap(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp,

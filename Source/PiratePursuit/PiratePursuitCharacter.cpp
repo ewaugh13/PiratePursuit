@@ -90,27 +90,7 @@ void APiratePursuitCharacter::LookUpAtRate(float Rate)
 
 void APiratePursuitCharacter::MoveForward(float Value)
 {
-	if (Controller != nullptr && Value != 0.0f && !_IsOnLadder == false)
-	{
-		// find out which way is forward
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-		// get forward vector
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		AddMovementInput(Direction, Value);
-	}
-	else if (Controller != nullptr && Value != 0.0f && _IsOnLadder)
-	{
-		// find out which way is forward
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-		// get forward vector
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Z);
-		//const FVector Direction = GetActorUpVector();
-		AddMovementInput(Direction, Value);
-	}
 }
 
 void APiratePursuitCharacter::MoveRight(float Value)

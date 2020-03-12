@@ -27,7 +27,8 @@ void APunchHitBox::BeginOverlap(UPrimitiveComponent * OverlappedComponent, AActo
 	if (OtherActor != GetAttachParentActor())
 	{
 		APiratePursuitCharacter * pirateCharacter = Cast<APiratePursuitCharacter>(OtherActor);
-		UPlayerStunComponent
-		if()
+		
+		// Get player stun component
+		//if()
 	}
 }
