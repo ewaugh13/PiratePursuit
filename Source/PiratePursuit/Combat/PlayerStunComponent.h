@@ -29,6 +29,14 @@ public:
 		// Grace period with getting stunned
 		float m_GracePeriod = 2.0f;
 
+	UPROPERTY(VisibleAnywhere, Category = "Stun")
+		// Time player is stunned
+		bool m_IsStunned = false;
+
+	UPROPERTY(VisibleAnywhere, Category = "Stun")
+		// If player is in grace period
+		bool m_IsInGracePeriod = false;
+
 	UFUNCTION()
 		void Stun();
 	UFUNCTION()
@@ -42,21 +50,12 @@ private:
 
 	void BindDelegates();
 
-	FTimerDynamicDelegate StunDelegate;
-	FTimerDynamicDelegate UnstunDelegate;
-	FTimerDynamicDelegate StartGracePeriodDelegate;
-	FTimerDynamicDelegate EndGracePeriodDelegate;
+	FTimerDynamicDelegate _StunDelegate;
+	FTimerDynamicDelegate _UnstunDelegate;
+	FTimerDynamicDelegate _StartGracePeriodDelegate;
+	FTimerDynamicDelegate _EndGracePeriodDelegate;
 
 	UPROPERTY(VisibleAnywhere, Category = "Stun")
 		// The players original max speed
 		float _OriginalMaxSpeed;
-
-	UPROPERTY(VisibleAnywhere, Category = "Stun")
-		// Time player is stunned
-		bool _IsStunned = false;
-
-	UPROPERTY(VisibleAnywhere, Category = "Stun")
-		// If player is in grace period
-		bool _IsInGracePeriod = false;
-
 };

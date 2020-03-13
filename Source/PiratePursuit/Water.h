@@ -23,9 +23,9 @@ public:
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "Rising")
 		// Speed water rises at
-		float m_RisingSpeed = 10.0f;
+		float m_RisingSpeed = 33.0f;
 
-	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "Rising")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Rising")
 		// Whether the water is rising or not
 		bool m_IsActive = false;
 

@@ -5,7 +5,10 @@
 #include <stack> 
 #include "PiratePursuitCharacter.generated.h"
 
+class APunchHitBox;
 class AWater;
+class UPlayerStunComponent;
+class UTreasureHolderComponent;
 
 UCLASS(config = Game)
 class APiratePursuitCharacter : public ACharacter
@@ -14,11 +17,18 @@ class APiratePursuitCharacter : public ACharacter
 
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-		class USpringArmComponent* CameraBoom;
+		class USpringArmComponent * CameraBoom;
 
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-		class UCameraComponent* FollowCamera;
+		class UCameraComponent * FollowCamera;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+		class UPlayerStunComponent * _StunComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+		class UTreasureHolderComponent * _TreasureHolderComponent;
+
 public:
 	APiratePursuitCharacter();
 
@@ -59,7 +69,8 @@ protected:
 	 */
 	void LookUpAtRate(float Rate);
 
-protected:
+	void Punch();
+
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	// End of APawn interface
@@ -72,9 +83,13 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	/** Returns CameraBoom subobject **/
-	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+	FORCEINLINE class USpringArmComponent * GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
-	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	FORCEINLINE class UCameraComponent * GetFollowCamera() const { return FollowCamera; }
+	// Returns Stun subobject
+	FORCEINLINE class UPlayerStunComponent * GetStunComponent() const { return _StunComponent; }
+	// Returns Treasure holder subobject
+	FORCEINLINE class UTreasureHolderComponent * GetTreasureComponent() const { return _TreasureHolderComponent; }
 
 	void Walk();
 
@@ -82,16 +97,38 @@ public:
 
 	UFUNCTION()
 		void OnHit(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit);
+
 	UFUNCTION()
 		void BeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 			int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult);
 
+	UFUNCTION()
+		void DestoryHitBox(APunchHitBox * i_HitBox);
+	UFUNCTION()
+		void ReEnablePlayerInput();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "PirateCharacter")
+		// If the player is climbing on a vine wall
+		bool m_IsClimbing = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "PirateCharacter")
+		// If the player currently has the treasure
+		bool m_HasTreasure = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "PirateCharacter")
+		// If the player is punching
+		bool m_IsPunching = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "PirateCharacter")
+		// If the player is in a stunned state
+		bool m_IsStunned = false;
+
 private:
 
-	void FindNextRespawnPlatform();
+	FTimerHandle _DestroyHitBoxTimerHandle;
+	FTimerHandle _ReEnablePlayerInputTimerHandle;
 
-	UPROPERTY(VisibleAnywhere, Category = "PirateCharacter")
-		bool _IsOnLadder = false;
+	void FindNextRespawnPlatform();
 
 	UPROPERTY(VisibleAnywhere, Category = "PirateCharacter")
 		AActor * _RespawnPlatform;

@@ -1,15 +1,17 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 
 #include "Ladder.h"
+
+#include "PiratePursuitCharacter.h"
+
 #include "Components/BoxComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Engine/Engine.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 
 // Sets default values
 ALadder::ALadder()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("Box Trigger"));
@@ -21,26 +23,30 @@ ALadder::ALadder()
 	CollisionBox->OnComponentEndOverlap.AddDynamic(this, &ALadder::OnOverlapEnd);
 }
 
-// Called when the game starts or when spawned
-void ALadder::BeginPlay()
+void ALadder::OnOverlapBegin(UPrimitiveComponent * OverlappedComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex,
+	bool bFromSweep, const FHitResult & SweepResult)
 {
-	Super::BeginPlay();
-}
+	APiratePursuitCharacter * pirateCharacter = Cast<APiratePursuitCharacter>(OtherActor);
 
-// Called every frame
-void ALadder::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
-void ALadder::OnOverlapBegin(UPrimitiveComponent * OverlappedComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
-{
-	
+	if (pirateCharacter != nullptr)
+	{
+		// only can climb if we aren't holding treasure
+		if (!pirateCharacter->m_HasTreasure)
+		{
+			pirateCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
+			pirateCharacter->m_IsClimbing = true;
+		}
+	}
 }
 
 void ALadder::OnOverlapEnd(UPrimitiveComponent * OverlappedComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex)
 {
-	
+	APiratePursuitCharacter * pirateCharacter = Cast<APiratePursuitCharacter>(OtherActor);
+
+	if (pirateCharacter != nullptr)
+	{
+		pirateCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+		pirateCharacter->m_IsClimbing = false;
+	}
 }
 

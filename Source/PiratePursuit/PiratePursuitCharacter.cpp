@@ -1,5 +1,8 @@
 #include "PiratePursuitCharacter.h"
 
+#include "Combat/PunchHitBox.h"
+#include "Combat/PlayerStunComponent.h"
+#include "Treasure/TreasureHolderComponent.h"
 #include "Water.h"
 
 #include "Camera/CameraComponent.h"
@@ -11,6 +14,8 @@
 #include "GameFramework/GameModeBase.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "TimerManager.h"
 
 //////////////////////////////////////////////////////////////////////////
 // APiratePursuitCharacter
@@ -29,8 +34,6 @@ APiratePursuitCharacter::APiratePursuitCharacter()
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
-	//isOnLadder = false;
-
 	// Configure character movement
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); // ...at this rotation rate
@@ -48,7 +51,9 @@ APiratePursuitCharacter::APiratePursuitCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
-
+	_StunComponent = CreateDefaultSubobject<UPlayerStunComponent>(TEXT("Stun"));
+	
+	_TreasureHolderComponent = CreateDefaultSubobject<UTreasureHolderComponent>(TEXT("TreasureHolder"));
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
@@ -74,6 +79,8 @@ void APiratePursuitCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	PlayerInputComponent->BindAxis("TurnRate", this, &APiratePursuitCharacter::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &APiratePursuitCharacter::LookUpAtRate);
+
+	PlayerInputComponent->BindAction("Punch", IE_Pressed, this, &APiratePursuitCharacter::Punch);
 }
 
 void APiratePursuitCharacter::TurnAtRate(float Rate)
@@ -88,9 +95,38 @@ void APiratePursuitCharacter::LookUpAtRate(float Rate)
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
 }
 
+void APiratePursuitCharacter::Punch()
+{
+	if (!_StunComponent->m_IsStunned && !m_IsPunching)
+	{
+		// spawn hit box
+		FActorSpawnParameters spawnHitBoxParams;
+		spawnHitBoxParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		spawnHitBoxParams.Instigator = this;
+		FTransform spawnTransform = FTransform();
+		spawnTransform.SetLocation(FVector(100.0f, 0.0, 0.0f));
+		APunchHitBox * hitbox = GetWorld()->SpawnActor<APunchHitBox>(GetClass(), spawnTransform, spawnHitBoxParams);
+
+		m_IsPunching = true;
+		hitbox->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
+		GetWorld()->GetTimerManager().SetTimer(_DestroyHitBoxTimerHandle, FTimerDelegate::CreateUObject(this, &APiratePursuitCharacter::DestoryHitBox, hitbox), 0.2f, false);
+	}
+}
+
 void APiratePursuitCharacter::MoveForward(float Value)
 {
-
+	// if we are climbing move in the upwards direction
+	if (m_IsClimbing)
+	{
+		AddMovementInput(GetActorUpVector(), Value);
+	}
+	else
+	{
+		FRotator contolRot = GetControlRotation();
+		
+		// Zero our pitch and roll, only move on plane
+		AddMovementInput(UKismetMathLibrary::GetForwardVector(FRotator(0.0f, contolRot.Yaw, 0.0f)), Value);
+	}
 }
 
 void APiratePursuitCharacter::MoveRight(float Value)
@@ -111,6 +147,10 @@ void APiratePursuitCharacter::MoveRight(float Value)
 void APiratePursuitCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// Disable player input for 3 seconds
+	DisableInput(nullptr);
+	GetWorld()->GetTimerManager().SetTimer(_ReEnablePlayerInputTimerHandle, this, &APiratePursuitCharacter::ReEnablePlayerInput, 3.0f, false);
 
 	// add hit and overlap bindings
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddUniqueDynamic(this, &APiratePursuitCharacter::BeginOverlap);
@@ -142,6 +182,11 @@ void APiratePursuitCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	FindNextRespawnPlatform();
+	m_HasTreasure = _TreasureHolderComponent->GetHeldTreasure() != nullptr;
+	if (IsValid(_StunComponent))
+	{
+		m_IsStunned = _StunComponent->m_IsStunned;
+	}
 }
 
 void APiratePursuitCharacter::Walk()
@@ -201,6 +246,17 @@ void APiratePursuitCharacter::BeginOverlap(UPrimitiveComponent * OverlappedCompo
 		}
 		SetActorLocation(newPostion);
 	}
+}
+
+void APiratePursuitCharacter::DestoryHitBox(APunchHitBox * i_HitBox)
+{
+	i_HitBox->Destroy();
+	m_IsPunching = false;
+}
+
+void APiratePursuitCharacter::ReEnablePlayerInput()
+{
+	EnableInput(nullptr);
 }
 
 void APiratePursuitCharacter::FindNextRespawnPlatform()

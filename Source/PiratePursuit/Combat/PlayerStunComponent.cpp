@@ -15,24 +15,24 @@ UPlayerStunComponent::UPlayerStunComponent()
 
 void UPlayerStunComponent::BindDelegates()
 {
-	StunDelegate.BindUFunction(this, "Stun");
-	UnstunDelegate.BindUFunction(this, "Unstun");
-	StartGracePeriodDelegate.BindUFunction(this, "StartGracePeriod");
-	EndGracePeriodDelegate.BindUFunction(this, "EndGracePeriod");
+	_StunDelegate.BindUFunction(this, "Stun");
+	_UnstunDelegate.BindUFunction(this, "Unstun");
+	_StartGracePeriodDelegate.BindUFunction(this, "StartGracePeriod");
+	_EndGracePeriodDelegate.BindUFunction(this, "EndGracePeriod");
 }
 
 void UPlayerStunComponent::Stun()
 {
 	UGameplayStatics::PlaySound2D(this, m_PunchSound);
 
-	if (!_IsStunned && !_IsInGracePeriod)
+	if (!m_IsStunned && !m_IsInGracePeriod)
 	{
 		UCharacterMovementComponent * ownerMovementComp = Cast<UCharacterMovementComponent>(GetOwner()->GetComponentByClass(UCharacterMovementComponent::StaticClass()));
 		_OriginalMaxSpeed = ownerMovementComp->MaxWalkSpeed;
 		ownerMovementComp->MaxWalkSpeed = 0;
-		_IsStunned = true;
+		m_IsStunned = true;
 
-		UKismetSystemLibrary::K2_SetTimerDelegate(UnstunDelegate, m_StunTime, false);
+		UKismetSystemLibrary::K2_SetTimerDelegate(_UnstunDelegate, m_StunTime, false);
 	}
 }
 
@@ -40,18 +40,18 @@ void UPlayerStunComponent::Unstun()
 {
 	UCharacterMovementComponent * ownerMovementComp = Cast<UCharacterMovementComponent>(GetOwner()->GetComponentByClass(UCharacterMovementComponent::StaticClass()));
 	ownerMovementComp->MaxWalkSpeed = _OriginalMaxSpeed;
-	_IsStunned = false;
+	m_IsStunned = false;
 
 	StartGracePeriod();
 }
 
 void UPlayerStunComponent::StartGracePeriod()
 {
-	_IsInGracePeriod = true;
-	UKismetSystemLibrary::K2_SetTimerDelegate(EndGracePeriodDelegate, m_GracePeriod, false);
+	m_IsInGracePeriod = true;
+	UKismetSystemLibrary::K2_SetTimerDelegate(_EndGracePeriodDelegate, m_GracePeriod, false);
 }
 
 void UPlayerStunComponent::EndGracePeriod()
 {
-	_IsInGracePeriod = false;
+	m_IsInGracePeriod = false;
 }

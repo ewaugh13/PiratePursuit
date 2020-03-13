@@ -5,6 +5,7 @@
 
 #include "Components/BoxComponent.h"
 #include "Engine/CollisionProfile.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
 APunchHitBox::APunchHitBox()
@@ -28,7 +29,11 @@ void APunchHitBox::BeginOverlap(UPrimitiveComponent * OverlappedComponent, AActo
 	{
 		APiratePursuitCharacter * pirateCharacter = Cast<APiratePursuitCharacter>(OtherActor);
 		
-		// Get player stun component
-		//if()
+		UPlayerStunComponent * stunComponent = pirateCharacter->GetStunComponent();
+		if (!stunComponent->m_IsStunned && !stunComponent->m_IsInGracePeriod)
+		{
+			stunComponent->Stun();
+			pirateCharacter->GetCharacterMovement()->AddForce(GetActorForwardVector() * m_KnockbackPower);
+		}
 	}
 }

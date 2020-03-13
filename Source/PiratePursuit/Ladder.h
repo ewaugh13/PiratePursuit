@@ -16,17 +16,10 @@ public:
 	// Sets default values for this actor's properties
 	ALadder();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
 public:	
 	APiratePursuitCharacter * PiratePursuitCharacter;
 
 	APiratePursuitCharacter * PiratePursuitCharacter1;
-
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(VisibleAnywhere)
 		class UBoxComponent * CollisionBox;

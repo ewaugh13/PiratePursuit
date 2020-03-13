@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #include "TreasureRespawnComponent.h"
 #include "Engine.h"
 #include "Engine/Classes/GameFramework/Actor.h"
@@ -12,14 +10,11 @@ UTreasureRespawnComponent::UTreasureRespawnComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
-
 // Called when the game starts
 void UTreasureRespawnComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
 }
-
 
 // Called every frame
 void UTreasureRespawnComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)

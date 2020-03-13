@@ -4,6 +4,11 @@
 #include "GameFramework/Actor.h"
 #include "Treasure.generated.h"
 
+class UTreasureRespawnComponent;
+
+class USoundBase;
+class UStaticMeshComponent;
+
 UCLASS()
 class PIRATEPURSUIT_API ATreasure : public AActor
 {
@@ -13,12 +18,16 @@ public:
 	// Sets default values for this actor's properties
 	ATreasure();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+		class UTreasureRespawnComponent * m_TreasureRespawn;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+		class UStaticMeshComponent * m_TreasureMesh;
 
+	UFUNCTION()
+		void ActorOverlap(AActor * OverlappedActor, AActor * OtherActor);
+
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "Treasure")
+		// Sound to play when stunning a player
+		USoundBase * m_TreasurePickupSound;
 };
