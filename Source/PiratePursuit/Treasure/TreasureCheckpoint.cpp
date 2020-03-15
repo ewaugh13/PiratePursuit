@@ -15,6 +15,7 @@ ATreasureCheckpoint::ATreasureCheckpoint()
 
 	m_CheckpointZone = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
 	RootComponent = m_CheckpointZone;
+	m_CheckpointZone->SetBoxExtent(FVector(32.0f, 32.0f, 8.0f));
 
 	OnActorBeginOverlap.AddDynamic(this, &ATreasureCheckpoint::ActorOverlap);
 }
@@ -29,10 +30,16 @@ void ATreasureCheckpoint::ActorOverlap(AActor * OverlappedActor, AActor * OtherA
 
 		for (int32 i = 0; i < treasures.Num(); i++)
 		{
+			ATreasure * treasure = Cast<ATreasure>(treasures[i]);
+			// remove top element that would be the one getting hit by water
+			treasure->m_TreasureCheckpoints.pop();
+
 			UTreasureRespawnComponent * treasureRespawn = Cast<UTreasureRespawnComponent>(treasures[i]->GetComponentByClass(UTreasureRespawnComponent::StaticClass()));
-			if (IsValid(treasureRespawn))
+			if (IsValid(treasureRespawn) && treasure->m_TreasureCheckpoints.size() > 0)
 			{
-				treasureRespawn->m_RespawnPoint = GetActorLocation();
+				// get next respawn point from stack and add 10 so its above the checkpoint box
+				treasureRespawn->m_RespawnPoint = FVector(0.0f, 0.0f, 50.0f) +
+					treasure->m_TreasureCheckpoints.top()->GetActorLocation();
 			}
 		}
 	}

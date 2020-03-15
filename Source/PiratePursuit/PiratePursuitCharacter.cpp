@@ -15,7 +15,9 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Sound/SoundBase.h"
 #include "TimerManager.h"
+#include "UObject/ConstructorHelpers.h"
 
 //////////////////////////////////////////////////////////////////////////
 // APiratePursuitCharacter
@@ -54,6 +56,11 @@ APiratePursuitCharacter::APiratePursuitCharacter()
 	_StunComponent = CreateDefaultSubobject<UPlayerStunComponent>(TEXT("Stun"));
 	
 	_TreasureHolderComponent = CreateDefaultSubobject<UTreasureHolderComponent>(TEXT("TreasureHolder"));
+
+	static ConstructorHelpers::FObjectFinder<USoundWave> SplooshSoundObject(
+		TEXT("SoundWave'/Game/PiratePursuit/EnvironmentAssets/Sploosh.Sploosh'"));
+
+	m_SplooshSound = Cast<USoundBase>(SplooshSoundObject.Object);
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
@@ -100,12 +107,12 @@ void APiratePursuitCharacter::Punch()
 	if (!_StunComponent->m_IsStunned && !m_IsPunching)
 	{
 		// spawn hit box
-		FActorSpawnParameters spawnHitBoxParams;
+		FActorSpawnParameters spawnHitBoxParams = FActorSpawnParameters();
 		spawnHitBoxParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		spawnHitBoxParams.Instigator = this;
 		FTransform spawnTransform = FTransform();
 		spawnTransform.SetLocation(FVector(100.0f, 0.0, 0.0f));
-		APunchHitBox * hitbox = GetWorld()->SpawnActor<APunchHitBox>(GetClass(), spawnTransform, spawnHitBoxParams);
+		APunchHitBox * hitbox = GetWorld()->SpawnActor<APunchHitBox>(APunchHitBox::StaticClass(), spawnTransform, spawnHitBoxParams);
 
 		m_IsPunching = true;
 		hitbox->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
@@ -115,17 +122,20 @@ void APiratePursuitCharacter::Punch()
 
 void APiratePursuitCharacter::MoveForward(float Value)
 {
-	// if we are climbing move in the upwards direction
-	if (m_IsClimbing)
+	if (Controller != nullptr && Value != 0.0f)
 	{
-		AddMovementInput(GetActorUpVector(), Value);
-	}
-	else
-	{
-		FRotator contolRot = GetControlRotation();
-		
-		// Zero our pitch and roll, only move on plane
-		AddMovementInput(UKismetMathLibrary::GetForwardVector(FRotator(0.0f, contolRot.Yaw, 0.0f)), Value);
+		// if we are climbing move in the upwards direction
+		if (m_IsClimbing)
+		{
+			AddMovementInput(GetActorUpVector(), Value);
+		}
+		else
+		{
+			FRotator contolRot = GetControlRotation();
+
+			// Zero our pitch and roll, only move on plane
+			AddMovementInput(UKismetMathLibrary::GetForwardVector(FRotator(0.0f, contolRot.Yaw, 0.0f)), Value);
+		}
 	}
 }
 
