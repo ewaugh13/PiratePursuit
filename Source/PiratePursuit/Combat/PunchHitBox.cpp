@@ -28,12 +28,15 @@ void APunchHitBox::BeginOverlap(UPrimitiveComponent * OverlappedComponent, AActo
 	if (OtherActor != GetAttachParentActor())
 	{
 		APiratePursuitCharacter * pirateCharacter = Cast<APiratePursuitCharacter>(OtherActor);
-		
-		UPlayerStunComponent * stunComponent = pirateCharacter->GetStunComponent();
-		if (!stunComponent->m_IsStunned && !stunComponent->m_IsInGracePeriod)
+
+		if (pirateCharacter != nullptr)
 		{
-			stunComponent->Stun();
-			pirateCharacter->GetCharacterMovement()->AddForce(GetActorForwardVector() * m_KnockbackPower);
+			UPlayerStunComponent * stunComponent = pirateCharacter->GetStunComponent();
+			if (!stunComponent->m_IsStunned && !stunComponent->m_IsInGracePeriod)
+			{
+				stunComponent->Stun();
+				pirateCharacter->GetCharacterMovement()->AddForce(GetActorForwardVector() * m_KnockbackPower);
+			}
 		}
 	}
 }

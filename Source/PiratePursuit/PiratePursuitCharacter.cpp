@@ -254,6 +254,9 @@ void APiratePursuitCharacter::BeginOverlap(UPrimitiveComponent * OverlappedCompo
 				}
 			}
 		}
+
+		// stop movement and respawn
+		GetCharacterMovement()->Velocity = FVector::ZeroVector;
 		SetActorLocation(newPostion);
 	}
 }
